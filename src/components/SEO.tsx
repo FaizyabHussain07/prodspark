@@ -14,8 +14,8 @@ interface SEOProps {
 export const SEO = ({
     title = "ProdSpark - Discover Elite Tools & Products 2026",
     description = "Connect with the world's most innovative tools and creators. ProdSpark is the premium directory for AI, DevTools, and more.",
-    image = "https://prodspark.com/og-image.png", // Replace with real OG image
-    url = "https://prodspark.com",
+    image = "https://prodspark.vercel.app/og-image.png",
+    url = "https://prodspark.vercel.app",
     type = "website",
     keywords = "ai, devtools, marketing, productivity, directory, makers, saas",
     author = "ProdSpark Team",
