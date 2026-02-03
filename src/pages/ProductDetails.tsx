@@ -64,7 +64,7 @@ export const ProductDetails = () => {
         }
 
         try {
-            const token = await getToken({ template: 'supabase' });
+            const token = await getToken();
             if (!token) throw new Error('Auth token missing');
             const authenticatedSupabase = createClerkSupabaseClient(token);
 
@@ -97,7 +97,7 @@ export const ProductDetails = () => {
 
         setReviewLoading(true);
         try {
-            const token = await getToken({ template: 'supabase' });
+            const token = await getToken();
             if (!token) throw new Error('Auth token missing');
             const authenticatedSupabase = createClerkSupabaseClient(token);
 

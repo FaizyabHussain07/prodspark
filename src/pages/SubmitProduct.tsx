@@ -77,8 +77,8 @@ export const SubmitProduct = () => {
 
         setLoading(true);
         try {
-            // Get Clerk token for Supabase
-            const token = await getToken({ template: 'supabase' });
+            // Get Clerk token for Supabase (Modern way: No template needed if Third-Party Auth is set up)
+            const token = await getToken();
             if (!token) {
                 throw new Error('No authentication token found. Please sign in again.');
             }
