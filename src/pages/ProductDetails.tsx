@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import {
     Heart, ExternalLink, ArrowLeft, MessageSquare,
     Info, Loader2, Sparkles, Zap, Layers
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../supabaseClient';
+import { supabase, createClerkSupabaseClient } from '../supabaseClient';
 import { calculateQualityScore } from '../types';
 import type { Product, Review } from '../types';
 import { StarRating } from '../components/StarRating';
@@ -17,6 +17,7 @@ import { SchemaOrg } from '../components/SchemaOrg';
 export const ProductDetails = () => {
     const { id } = useParams<{ id: string }>();
     const { user } = useUser();
+    const { getToken } = useAuth();
     const [product, setProduct] = useState<Product | null>(null);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
@@ -62,19 +63,30 @@ export const ProductDetails = () => {
             return;
         }
 
-        const isLiked = product?.likes.includes(user.id);
-        const newLikes = isLiked
-            ? product?.likes.filter(uid => uid !== user.id)
-            : [...(product?.likes || []), user.id];
+        try {
+            const token = await getToken({ template: 'supabase' });
+            if (!token) throw new Error('Auth token missing');
+            const authenticatedSupabase = createClerkSupabaseClient(token);
 
-        const { error } = await supabase
-            .from('products')
-            .update({ likes: newLikes })
-            .eq('id', id);
+            const isLiked = product?.likes.includes(user.id);
+            const newLikes = isLiked
+                ? product?.likes.filter(uid => uid !== user.id)
+                : [...(product?.likes || []), user.id];
 
-        if (!error && product) {
-            setProduct({ ...product, likes: newLikes || [] });
-            toast.success(isLiked ? 'Removed from favorites' : 'Added to favorites!');
+            const { error } = await authenticatedSupabase
+                .from('products')
+                .update({ likes: newLikes })
+                .eq('id', id);
+
+            if (!error && product) {
+                setProduct({ ...product, likes: newLikes || [] });
+                toast.success(isLiked ? 'Removed from favorites' : 'Added to favorites!');
+            } else if (error) {
+                throw error;
+            }
+        } catch (error: any) {
+            console.error('Like error:', error);
+            toast.error('Failed to update like status');
         }
     };
 
@@ -84,22 +96,32 @@ export const ProductDetails = () => {
         if (!newReview.text.trim()) return;
 
         setReviewLoading(true);
-        const { data, error } = await supabase.from('reviews').insert({
-            product_id: id,
-            user_clerk_id: user.id,
-            text: newReview.text,
-            stars: newReview.stars
-        }).select().single();
+        try {
+            const token = await getToken({ template: 'supabase' });
+            if (!token) throw new Error('Auth token missing');
+            const authenticatedSupabase = createClerkSupabaseClient(token);
 
-        if (error) {
+            const { data, error } = await authenticatedSupabase.from('reviews').insert({
+                product_id: id,
+                user_clerk_id: user.id,
+                text: newReview.text,
+                stars: newReview.stars
+            }).select().single();
+
+            if (error) {
+                toast.error('Failed to post review: ' + error.message);
+            } else {
+                setReviews([data, ...reviews]);
+                setNewReview({ text: '', stars: 5 });
+                toast.success('Review shared with the community!');
+                fetchProductAndReviews(); // Refresh score
+            }
+        } catch (error: any) {
+            console.error('Review error:', error);
             toast.error('Failed to post review');
-        } else {
-            setReviews([data, ...reviews]);
-            setNewReview({ text: '', stars: 5 });
-            toast.success('Review shared with the community!');
-            fetchProductAndReviews(); // Refresh score
+        } finally {
+            setReviewLoading(false);
         }
-        setReviewLoading(false);
     };
 
     if (loading) {
