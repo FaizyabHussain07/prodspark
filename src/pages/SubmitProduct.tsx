@@ -152,7 +152,7 @@ export const SubmitProduct = () => {
                                         <Sparkles size={18} className="text-primary" />
                                         Identity
                                     </h3>
-                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Your tool's logo will be its first impression. High resolution recommended.</p>
+                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Your tool's logo will be its first impression. High resolution recommended (max 5MB).</p>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="group block relative cursor-pointer">
@@ -340,7 +340,10 @@ export const SubmitProduct = () => {
                                         <ImageIcon size={18} className="text-primary" />
                                         Visual Intel
                                     </h3>
-                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Add screenshots or mockups of your interface.</p>
+                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                                        Add screenshots or mockups.
+                                        <span className="block mt-1 text-primary font-black">Max 3 images • Max 10MB each</span>
+                                    </p>
                                 </div>
                                 <div className="md:col-span-2">
                                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">

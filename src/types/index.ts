@@ -21,6 +21,8 @@ export interface Review {
     id: string;
     product_id: string;
     user_clerk_id: string;
+    user_name?: string;
+    user_avatar_url?: string;
     text: string;
     stars: number;
     created_at: string;

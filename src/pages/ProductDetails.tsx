@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import {
     Heart, ExternalLink, ArrowLeft, MessageSquare,
-    Info, Loader2, Sparkles, Zap, Layers
+    Info, Loader2, Sparkles, Zap, Layers, Share2, CheckCircle2
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { supabase, createClerkSupabaseClient } from '../supabaseClient';
@@ -13,6 +13,16 @@ import { StarRating } from '../components/StarRating';
 import { motion } from 'framer-motion';
 import { SEO } from '../components/SEO';
 import { SchemaOrg } from '../components/SchemaOrg';
+import {
+    TwitterShareButton,
+    FacebookShareButton,
+    LinkedinShareButton,
+    WhatsappShareButton,
+    XIcon,
+    FacebookIcon,
+    LinkedinIcon,
+    WhatsappIcon,
+} from 'react-share';
 
 export const ProductDetails = () => {
     const { id } = useParams<{ id: string }>();
@@ -23,6 +33,10 @@ export const ProductDetails = () => {
     const [loading, setLoading] = useState(true);
     const [reviewLoading, setReviewLoading] = useState(false);
     const [newReview, setNewReview] = useState({ text: '', stars: 5 });
+    const [copied, setCopied] = useState(false);
+
+    const shareUrl = window.location.href;
+    const shareTitle = product ? `${product.name} on ProdSpark: ${product.description.substring(0, 60)}...` : 'Check out this cool tool on ProdSpark!';
 
     useEffect(() => {
         if (id) {
@@ -42,7 +56,8 @@ export const ProductDetails = () => {
 
             setProduct({
                 ...productData,
-                quality_score: calculateQualityScore(productData, avgRating)
+                quality_score: calculateQualityScore(productData, avgRating),
+                averageRating: avgRating
             } as Product);
             setReviews(reviewsData || []);
         }
@@ -104,6 +119,8 @@ export const ProductDetails = () => {
             const { data, error } = await authenticatedSupabase.from('reviews').insert({
                 product_id: id,
                 user_clerk_id: user.id,
+                user_name: user.fullName || user.username || 'Anonymous',
+                user_avatar_url: user.imageUrl,
                 text: newReview.text,
                 stars: newReview.stars
             }).select().single();
@@ -156,7 +173,7 @@ export const ProductDetails = () => {
         "@type": "Product",
         "name": product.name,
         "description": product.description,
-        "image": product.logo_url,
+        "image": product.images_urls?.[0] || product.logo_url,
         "brand": {
             "@type": "Brand",
             "name": product.name
@@ -178,258 +195,307 @@ export const ProductDetails = () => {
     };
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A]">
             <SEO
-                title={`${product.name} - ${product.category || 'Elite Tool'} Review & Details`}
+                title={`${product.name} on ProdSpark`}
                 description={product.description.substring(0, 160)}
-                image={product.logo_url}
+                image={product.images_urls?.[0] || product.logo_url}
                 url={`https://prodspark.com/products/${id}`}
                 type="product"
             />
             <SchemaOrg data={productSchema} />
 
-            {/* Header Area */}
-            <div className="bg-slate-50 dark:bg-slate-900 border-b border-main relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-orange-500/5 to-transparent pointer-events-none" />
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
-                    <Link to="/products" className="inline-flex items-center gap-2 text-slate-400 hover:text-main mb-12 transition-colors font-bold uppercase tracking-widest text-xs">
+            {/* Top Navigation Bar */}
+            <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <Link to="/products" className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors font-bold text-sm uppercase tracking-wider">
                         <ArrowLeft size={18} />
                         Back to Catalog
                     </Link>
+                    <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-400">QUALITY SCORE:</span>
+                            <span className="text-lg font-black text-primary">{Math.round(product.quality_score || 0)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                    <div className="flex flex-col lg:flex-row gap-12 items-start">
+            {/* Hero Section */}
+            <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                    <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            className="relative"
+                            className="relative flex-shrink-0"
                         >
                             <img
                                 src={`${product.logo_url}?q_auto,f_auto,w_400`}
                                 alt={product.name}
-                                loading="eager"
-                                className="w-40 h-40 rounded-[2.5rem] object-cover shadow-2xl border-4 border-card"
+                                className="w-24 h-24 md:w-32 md:h-32 rounded-3xl object-cover shadow-xl border-4 border-white dark:border-slate-800"
                             />
-                            <div className="absolute -bottom-3 -right-3 bg-secondary text-white p-3 rounded-2xl shadow-xl">
-                                <Zap size={20} fill="currentColor" className="text-orange-400" />
+                            <div className="absolute -bottom-2 -right-2 bg-orange-500 text-white p-2 rounded-xl shadow-lg">
+                                <Zap size={16} fill="currentColor" />
                             </div>
                         </motion.div>
 
                         <div className="flex-grow">
-                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <h1 className="text-5xl md:text-6xl font-black leading-none">{product.name}</h1>
-                                        <span className="bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg border border-primary/20 flex items-center gap-1.5 self-end mb-1">
-                                            <Layers size={12} />
-                                            {product.category || 'General'}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-4">
-                                        <div className="flex items-center gap-2 bg-card px-4 py-2 rounded-full border border-main shadow-sm">
-                                            <StarRating rating={Math.round(avgRating)} />
-                                            <span className="font-black">{avgRating.toFixed(1)}</span>
-                                            <span className="text-slate-400 text-xs font-bold uppercase ml-1">({reviews.length})</span>
-                                        </div>
-                                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-800" />
-                                        <span className={`px-5 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-sm ${product.pricing === 'Free' ? 'bg-green-500 text-white' :
-                                            product.pricing === 'Premium' ? 'bg-orange-500 text-white' :
-                                                'bg-indigo-600 text-white'
-                                            }`}>
-                                            {product.pricing}
-                                        </span>
-                                    </div>
-                                </div>
+                            <div className="flex flex-wrap items-center gap-3 mb-2">
+                                <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+                                    {product.name}
+                                </h1>
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${product.pricing === 'Free' ? 'bg-green-100 text-green-600 dark:bg-green-500/10 dark:text-green-400' :
+                                    product.pricing === 'Premium' ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400' :
+                                        'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400'
+                                    }`}>
+                                    {product.pricing}
+                                </span>
+                            </div>
 
-                                <div className="flex items-center gap-4">
-                                    <motion.button
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={handleLike}
-                                        className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black transition-all border-2 ${product.likes.includes(user?.id || '')
-                                            ? 'bg-red-50 dark:bg-red-500/10 border-red-100 dark:border-red-500/20 text-red-500 shadow-lg shadow-red-100 dark:shadow-none'
-                                            : 'bg-card border-main text-slate-400 hover:border-red-100 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10'
-                                            }`}
-                                    >
-                                        <Heart size={24} className={product.likes.includes(user?.id || '') ? 'fill-current' : ''} />
-                                        {product.likes.length}
-                                    </motion.button>
-                                    <a
-                                        href={product.link}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="btn-primary"
-                                    >
-                                        Visit Experience
-                                        <ExternalLink size={20} />
-                                    </a>
+                            <div className="flex flex-wrap items-center gap-6">
+                                <div className="flex items-center gap-2">
+                                    <StarRating rating={Math.round(avgRating)} size={16} />
+                                    <span className="font-bold text-slate-700 dark:text-slate-300">{avgRating.toFixed(1)}</span>
+                                    <span className="text-slate-400 text-xs font-medium">({reviews.length} reviews)</span>
+                                </div>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-500">
+                                    <Layers size={14} />
+                                    {product.category || 'General'}
                                 </div>
                             </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 w-full md:w-auto">
+                            <motion.button
+                                whileTap={{ scale: 0.95 }}
+                                onClick={handleLike}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black transition-all border-2 ${product.likes.includes(user?.id || '')
+                                    ? 'bg-red-50 dark:bg-red-500/10 border-red-500 text-red-500'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 hover:border-red-500 hover:text-red-500'
+                                    }`}
+                            >
+                                <Heart size={20} className={product.likes.includes(user?.id || '') ? 'fill-current' : ''} />
+                                {product.likes.length}
+                            </motion.button>
+                            <a
+                                href={product.link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex-1 md:flex-none btn-primary flex items-center justify-center gap-2 px-8 py-4 rounded-2xl"
+                            >
+                                Visit Experience
+                                <ExternalLink size={20} />
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
+            </header>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 grid grid-cols-1 lg:grid-cols-3 gap-24 font-sans text-main">
-                {/* Main Content */}
-                <div className="lg:col-span-2 space-y-20">
-                    {/* Description */}
-                    <section>
-                        <div className="flex items-center gap-3 mb-8">
-                            <div className="w-10 h-10 bg-secondary dark:bg-slate-800 rounded-xl flex items-center justify-center text-white">
-                                <Info size={24} />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+
+                    {/* Left Column */}
+                    <div className="lg:col-span-2 space-y-12">
+
+                        {/* Featured Image */}
+                        {(product.images_urls || []).length > 0 && (
+                            <section className="bg-white dark:bg-slate-900 rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                                <img
+                                    src={`${product.images_urls[0]}?q_auto,f_auto,w_1200`}
+                                    alt={`${product.name} Main Preview`}
+                                    className="w-full aspect-video object-cover"
+                                />
+                            </section>
+                        )}
+
+                        {/* Description */}
+                        <section className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-500">
+                                    <Info size={24} />
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white">Discovery Journey</h2>
                             </div>
-                            <h2 className="text-3xl font-black">Discovery Journey</h2>
-                        </div>
-                        <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium whitespace-pre-wrap">
-                            {product.description}
-                        </p>
-                    </section>
+                            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-normal whitespace-pre-wrap">
+                                {product.description}
+                            </p>
 
-                    {/* Gallery */}
-                    {(product.images_urls || []).length > 0 && (
-                        <section>
-                            <h2 className="text-3xl font-black mb-10">Visual Preview</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {product.images_urls.map((url, i) => (
-                                    <motion.img
-                                        whileHover={{ scale: 1.02 }}
-                                        key={url}
-                                        src={`${url}?q_auto,f_auto,w_800`}
-                                        alt={`Preview ${i}`}
-                                        loading="lazy"
-                                        className="rounded-[2.5rem] w-full aspect-video object-cover border-4 border-main shadow-xl"
-                                    />
+                            <div className="mt-8 flex flex-wrap gap-2">
+                                {(product.tags || []).map(tag => (
+                                    <span key={tag} className="px-4 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full text-xs font-bold text-slate-500">
+                                        #{tag.toUpperCase()}
+                                    </span>
                                 ))}
                             </div>
                         </section>
-                    )}
 
-                    {/* Tags */}
-                    <section>
-                        <h3 className="font-black text-slate-300 dark:text-slate-700 text-xs uppercase tracking-[0.3em] mb-6">Classified Under</h3>
-                        <div className="flex flex-wrap gap-3">
-                            {(product.tags || []).map(tag => (
-                                <span key={tag} className="bg-card px-6 py-3 rounded-2xl text-sm font-black border-2 border-main shadow-sm hover:border-primary/20 transition-colors">
-                                    #{tag.toUpperCase()}
-                                </span>
-                            ))}
-                        </div>
-                    </section>
-
-                    {/* Reviews Section */}
-                    <section className="pt-24 border-t border-main">
-                        <div className="flex justify-between items-center mb-12">
-                            <h2 className="text-3xl font-black flex items-center gap-4">
-                                <MessageSquare className="text-primary" size={32} />
-                                Community Intel
-                            </h2>
-                        </div>
-
-                        {/* Post Review */}
-                        {user ? (
-                            <form onSubmit={submitReview} className="bg-slate-50 dark:bg-slate-900 rounded-[3rem] p-10 mb-20 border-2 border-main shadow-inner">
-                                <div className="flex items-center gap-6 mb-8">
-                                    <span className="font-black text-lg">Rate Your Intel:</span>
-                                    <StarRating
-                                        rating={newReview.stars}
-                                        interactive
-                                        onRatingChange={(s) => setNewReview({ ...newReview, stars: s })}
-                                        size={32}
-                                    />
+                        {/* Gallery */}
+                        {(product.images_urls || []).length > 0 && (
+                            <section className="space-y-6">
+                                <h2 className="text-2xl font-black text-slate-900 dark:text-white px-2">Visual Intel</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {product.images_urls.map((url, i) => (
+                                        <motion.div
+                                            whileHover={{ scale: 1.02 }}
+                                            key={i}
+                                            className="rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg"
+                                        >
+                                            <img
+                                                src={`${url}?q_auto,f_auto,w_800`}
+                                                alt={`Preview ${i + 1}`}
+                                                loading="lazy"
+                                                className="w-full aspect-[4/3] object-cover"
+                                            />
+                                        </motion.div>
+                                    ))}
                                 </div>
-                                <textarea
-                                    required
-                                    rows={4}
-                                    placeholder="Share your experience with the community..."
-                                    className="w-full px-8 py-6 bg-card border-2 border-main rounded-[2.5rem] focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all resize-none mb-6 font-medium text-lg lg:text-xl shadow-sm"
-                                    value={newReview.text}
-                                    onChange={e => setNewReview({ ...newReview, text: e.target.value })}
-                                />
-                                <button
-                                    disabled={reviewLoading}
-                                    type="submit"
-                                    className="btn-primary w-full md:w-auto"
-                                >
-                                    {reviewLoading ? 'Transmitting...' : 'Post Your Intel'}
-                                </button>
-                            </form>
-                        ) : (
-                            <div className="bg-card rounded-[3rem] p-16 text-center mb-20 border-4 border-dashed border-main">
-                                <p className="text-slate-500 font-black text-xl mb-6 uppercase tracking-widest">Signed In Intelligence Required</p>
-                                <Link to="/sign-in" className="btn-primary">Connect Now</Link>
-                            </div>
+                            </section>
                         )}
 
-                        {/* Review List */}
-                        <div className="space-y-12">
-                            {reviews.length > 0 ? (
-                                reviews.map(review => (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        whileInView={{ opacity: 1 }}
-                                        key={review.id}
-                                        className="pb-12 border-b border-main group"
+                        {/* Reviews */}
+                        <section className="pt-8 border-t border-slate-200 dark:border-slate-800">
+                            <div className="flex items-center justify-between mb-8 px-2">
+                                <h2 className="text-2xl font-black flex items-center gap-3 text-slate-900 dark:text-white">
+                                    <MessageSquare className="text-primary" size={24} />
+                                    Community Intel
+                                </h2>
+                            </div>
+
+                            {user ? (
+                                <form onSubmit={submitReview} className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 mb-12 border border-slate-200 dark:border-slate-800 shadow-sm">
+                                    <div className="flex items-center gap-4 mb-6">
+                                        <span className="font-bold">Rate:</span>
+                                        <StarRating
+                                            rating={newReview.stars}
+                                            interactive
+                                            onRatingChange={(s) => setNewReview({ ...newReview, stars: s })}
+                                            size={24}
+                                        />
+                                    </div>
+                                    <textarea
+                                        required
+                                        rows={3}
+                                        placeholder="Launch your intelligence here... (English/Urdu mix works best!)"
+                                        className="w-full px-6 py-4 bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-2xl focus:border-primary outline-none transition-all resize-none mb-4 font-medium"
+                                        value={newReview.text}
+                                        onChange={e => setNewReview({ ...newReview, text: e.target.value })}
+                                    />
+                                    <button
+                                        disabled={reviewLoading}
+                                        type="submit"
+                                        className="btn-primary w-full md:w-auto px-10 py-3 rounded-xl font-black"
                                     >
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 rounded-2xl bg-secondary dark:bg-slate-800 flex items-center justify-center text-primary font-black text-xl shadow-lg">
-                                                    {review.user_clerk_id.substring(0, 2).toUpperCase()}
-                                                </div>
-                                                <div>
-                                                    <StarRating rating={review.stars} size={16} />
-                                                    <p className="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em] mt-2">
-                                                        User ID: {review.user_clerk_id.substring(0, 8)} • {new Date(review.created_at).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <p className="text-xl text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic pl-4 border-l-4 border-main group-hover:border-primary transition-colors">
-                                            "{review.text}"
-                                        </p>
-                                    </motion.div>
-                                ))
+                                        {reviewLoading ? 'Transmitting...' : 'Post Intel Now'}
+                                    </button>
+                                </form>
                             ) : (
-                                <div className="text-center py-20 bg-slate-50 dark:bg-slate-900 rounded-[3rem]">
-                                    <p className="text-slate-400 font-black uppercase tracking-widest">No community data yet</p>
+                                <div className="bg-slate-100 dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center mb-12">
+                                    <p className="text-slate-500 font-bold mb-4">You need to be signed in to post Intel.</p>
+                                    <Link to="/sign-in" className="btn-primary inline-block px-8 py-3 rounded-xl">Sign In</Link>
                                 </div>
                             )}
+
+                            <div className="space-y-6">
+                                {reviews.length > 0 ? (
+                                    reviews.map(review => (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            whileInView={{ opacity: 1 }}
+                                            key={review.id}
+                                            className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800/50 shadow-sm"
+                                        >
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <img
+                                                        src={review.user_avatar_url || `https://ui-avatars.com/api/?name=${review.user_name || 'U'}&background=random`}
+                                                        alt={review.user_name || 'User'}
+                                                        className="w-10 h-10 rounded-xl object-cover shadow-sm bg-primary/10"
+                                                    />
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-black text-slate-900 dark:text-white">
+                                                                {review.user_name || 'Anonymous User'}
+                                                            </span>
+                                                            <StarRating rating={review.stars} size={10} />
+                                                        </div>
+                                                        <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                                                            {new Date(review.created_at).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                                {review.text}
+                                            </p>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-10">
+                                        <p className="text-slate-400 font-bold italic">Waiting for community intel...</p>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-8 sticky top-24">
+                        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden relative group">
+                            <h3 className="text-xl font-black mb-8 flex items-center gap-2 text-slate-900 dark:text-white">
+                                <Sparkles className="text-orange-400" size={20} fill="currentColor" />
+                                Elite Insight
+                            </h3>
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-center py-3 border-b border-slate-50 dark:border-slate-800">
+                                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Quality Score</span>
+                                    <span className="text-3xl font-black text-primary">{Math.round(product.quality_score || 0)}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-3 border-b border-slate-50 dark:border-slate-800">
+                                    <span className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Visual Intel</span>
+                                    <span className="font-black text-slate-900 dark:text-white">{product.views.toLocaleString()}</span>
+                                </div>
+                            </div>
                         </div>
-                    </section>
-                </div>
 
-                {/* Sidebar Info */}
-                <div className="relative">
-                    <div className="bg-secondary dark:bg-slate-900 text-white rounded-[3rem] p-10 shadow-3xl sticky top-24 overflow-hidden group border dark:border-slate-800">
-                        <div className="absolute top-0 right-0 w-full h-full bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-
-                        <h3 className="text-2xl font-black mb-10 flex items-center gap-3">
-                            <Sparkles className="text-orange-400" size={28} fill="currentColor" />
-                            Elite Insight
-                        </h3>
-
-                        <div className="space-y-8 mb-12">
-                            <div className="flex justify-between items-end border-b border-white/5 pb-6">
-                                <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Quality Score</span>
-                                <span className="text-5xl font-black text-orange-400 leading-none">{Math.round(product.quality_score || 0)}</span>
+                        <div className="bg-white dark:bg-slate-900 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-xl">
+                            <h3 className="text-xl font-black mb-6 flex items-center gap-2 text-slate-900 dark:text-white">
+                                <Share2 className="text-primary" size={20} />
+                                Share this Tool
+                            </h3>
+                            <div className="grid grid-cols-4 gap-3">
+                                <TwitterShareButton url={shareUrl} title={shareTitle}>
+                                    <XIcon size={40} round />
+                                </TwitterShareButton>
+                                <FacebookShareButton url={shareUrl}>
+                                    <FacebookIcon size={40} round />
+                                </FacebookShareButton>
+                                <LinkedinShareButton url={shareUrl} title={shareTitle}>
+                                    <LinkedinIcon size={40} round />
+                                </LinkedinShareButton>
+                                <WhatsappShareButton url={shareUrl} title={shareTitle}>
+                                    <WhatsappIcon size={40} round />
+                                </WhatsappShareButton>
                             </div>
-                            <div className="flex justify-between items-center border-b border-white/5 pb-6">
-                                <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Visual Intel</span>
-                                <span className="font-black text-xl">{product.views.toLocaleString()}</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-white/5 pb-6">
-                                <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Endorsements</span>
-                                <span className="font-black text-xl">{product.likes.length}</span>
-                            </div>
-                        </div>
 
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10">
-                            <p className="text-sm text-slate-400 leading-relaxed font-bold italic">
-                                "Our proprietary score blends peer reviews, engagement metrics, and verified visual intelligence."
-                            </p>
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(shareUrl);
+                                    setCopied(true);
+                                    toast.success('Link copied to clipboard!');
+                                    setTimeout(() => setCopied(false), 2000);
+                                }}
+                                className={`w-full mt-6 py-3 font-black text-[10px] uppercase tracking-widest rounded-xl border transition-all flex items-center justify-center gap-2 cursor-pointer ${copied
+                                    ? 'bg-green-500 border-green-500 text-white shadow-lg'
+                                    : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 border-slate-100 dark:border-slate-700'
+                                    }`}
+                            >
+                                {copied ? <><CheckCircle2 size={14} /> Copied!</> : <><Share2 size={12} /> Copy Link</>}
+                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     );
 };
