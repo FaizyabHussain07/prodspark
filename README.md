@@ -6,11 +6,11 @@
 
 **Spark Your Ideas – Discover the Best Tools & Products**
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://prodspark.com)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://prodspark.vercel.app)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 [![License](https://img.shields.io/badge/license-MIT-blue)]()
 
-[Live Demo](https://prodspark.com) · [Report Bug](https://github.com/yourusername/prodspark/issues) · [Request Feature](https://github.com/yourusername/prodspark/issues)
+[Live Demo](https://prodspark.vercel.app) · [Report Bug](https://github.com/Faizyab7-bot/prodspark/issues) · [Request Feature](https://github.com/Faizyab7-bot/prodspark/issues)
 
 </div>
 
@@ -101,7 +101,7 @@
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/prodspark.git
+git clone https://github.com/Faizyab7-bot/prodspark.git
 cd prodspark
 ```
 
@@ -194,7 +194,7 @@ ProdSpark is fully optimized for search engines:
 2. Go to [Google Search Console](https://search.google.com/search-console)
 3. Add your property (domain or URL prefix)
 4. Verify ownership
-5. Submit sitemap: `https://yourdomain.com/sitemap.xml`
+5. Submit sitemap: `https://prodspark.vercel.app/sitemap.xml`
 
 ---
 
@@ -296,7 +296,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-**Made with ❤️ by [Your Name](https://github.com/yourusername)**
+**Made with ❤️ by [Faizyab Hussain](https://github.com/FaizyabHussain07)**
 
 ⭐ Star this repo if you find it helpful!
 

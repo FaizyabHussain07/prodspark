@@ -4,4 +4,4 @@ Disallow: /submit
 Disallow: /sign-in
 Disallow: /sign-up
 
-Sitemap: https://prodspark.com/sitemap.xml
+Sitemap: https://prodspark.vercel.app/sitemap.xml
