@@ -73,9 +73,9 @@ export const Products = () => {
     return (
         <div className="min-h-screen pt-12 pb-24">
             <SEO
-                title="Elite Tools Directory - Browse Innovative Products"
+                title="Elite AI Tools & Products Directory 2026 | ProdSpark"
                 description="Explore our curated collection of elite AI tools, devtools, and productivity apps. Filter by pricing and category to find your next digital spark."
-                canonical="https://prodspark.com/products"
+                canonical="https://prodspark.vercel.app/products"
             />
             <SchemaOrg data={itemListSchema} />
 

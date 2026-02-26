@@ -1,8 +1,14 @@
 import { SignUp } from '@clerk/clerk-react';
+import { SEO } from '../components/SEO';
 
 export const SignUpPage = () => {
     return (
         <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
+            <SEO
+                title="Join ProdSpark - Ignite Your Innovation Today"
+                description="Create your ProdSpark account to submit tools, share reviews, and connect with the world's best creators."
+                canonical="https://prodspark.vercel.app/sign-up"
+            />
             <div className="w-full max-w-md">
                 <SignUp
                     routing="path"

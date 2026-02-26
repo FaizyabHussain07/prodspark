@@ -12,14 +12,14 @@ interface SEOProps {
 }
 
 export const SEO = ({
-    title = "ProdSpark - Discover Elite Tools & Products 2026",
-    description = "Connect with the world's most innovative tools and creators. ProdSpark is the premium directory for AI, DevTools, and more.",
-    image = "https://prodspark.vercel.app/og-image.png",
+    title = "ProdSpark - Discover & Submit the Best Tools and Products",
+    description = "ProdSpark is a free platform to discover, submit, and review the best tools, AI products, and side projects. Built for makers and builders.",
+    image = "https://prodspark.vercel.app/OG-BANNER.png",
     url = "https://prodspark.vercel.app",
     type = "website",
-    keywords = "ai, devtools, marketing, productivity, directory, makers, saas",
+    keywords = "ai, devtools, marketing, productivity, directory, makers, saas, products, tools",
     author = "ProdSpark Team",
-    canonical,
+    canonical = "https://prodspark.vercel.app",
 }: SEOProps) => {
     const siteName = "ProdSpark";
     const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
@@ -31,9 +31,10 @@ export const SEO = ({
             <meta name="description" content={description} />
             <meta name="keywords" content={keywords} />
             <meta name="author" content={author} />
+            <meta name="robots" content="index, follow" />
 
             {/* Canonical */}
-            {canonical && <link rel="canonical" href={canonical} />}
+            <link rel="canonical" href={canonical || url} />
 
             {/* Open Graph / Facebook */}
             <meta property="og:type" content={type} />
@@ -41,9 +42,12 @@ export const SEO = ({
             <meta property="og:title" content={fullTitle} />
             <meta property="og:description" content={description} />
             <meta property="og:image" content={image} />
+            <meta property="og:site_name" content={siteName} />
+            <meta property="og:locale" content="en_US" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:site" content="@prodspark" />
             <meta name="twitter:url" content={url} />
             <meta name="twitter:title" content={fullTitle} />
             <meta name="twitter:description" content={description} />
@@ -51,7 +55,6 @@ export const SEO = ({
 
             {/* Mobile & App */}
             <meta name="theme-color" content="#f97316" />
-            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
         </Helmet>
     );
 };

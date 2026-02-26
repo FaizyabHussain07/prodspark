@@ -125,8 +125,9 @@ export const Home = () => {
     return (
         <div className="flex flex-col min-h-screen">
             <SEO
-                title="ProdSpark - Discover Elite Tools & Products 2026"
-                description="Ignite your innovation with the best free and premium AI tools, devtools, and productivity software. Join 12k+ makers shaping the future."
+                title="ProdSpark - Discover & Submit the Best Tools and Products"
+                description="ProdSpark is a free platform to discover, submit, and review the best tools, AI products, and side projects. Built for makers and builders."
+                canonical="https://prodspark.vercel.app"
             />
             <SchemaOrg data={websiteSchema} />
             <SchemaOrg data={organizationSchema} />

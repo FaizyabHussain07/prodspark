@@ -1,8 +1,14 @@
 import { SignIn } from '@clerk/clerk-react';
+import { SEO } from '../components/SEO';
 
 export const SignInPage = () => {
     return (
         <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-4 bg-slate-50 dark:bg-slate-950">
+            <SEO
+                title="Sign In to ProdSpark - Access Your Dashboard"
+                description="Sign in to your ProdSpark account to manage your products, track views, and engage with the community."
+                canonical="https://prodspark.vercel.app/sign-in"
+            />
             <div className="w-full max-w-md">
                 <SignIn
                     routing="path"

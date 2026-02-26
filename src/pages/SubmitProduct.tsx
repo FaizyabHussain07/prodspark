@@ -11,6 +11,7 @@ import { toast } from 'react-hot-toast';
 import { supabase } from '../supabaseClient';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SEO } from '../components/SEO';
 
 const CATEGORIES = [
     'AI', 'DevTools', 'Design', 'Marketing', 'Productivity', 'SEO', 'No-Code', 'Other'
@@ -100,6 +101,11 @@ export const SubmitProduct = () => {
 
     return (
         <div className="min-h-screen py-20 px-4">
+            <SEO
+                title="Submit Your Best Tools & Products | ProdSpark"
+                description="Share your innovation with the world. Submit your AI tools, side projects, and digital products to ProdSpark's elite directory."
+                canonical="https://prodspark.vercel.app/submit"
+            />
             <div className="max-w-4xl mx-auto">
                 <Link to="/products" className="inline-flex items-center gap-2 text-slate-400 hover:text-primary mb-12 transition-colors font-bold uppercase tracking-widest text-xs">
                     <ArrowLeft size={18} />

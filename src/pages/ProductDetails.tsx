@@ -158,11 +158,12 @@ export const ProductDetails = () => {
     return (
         <div className="min-h-screen">
             <SEO
-                title={`${product.name} - ${product.category || 'Elite Tool'} Review & Details`}
-                description={product.description.substring(0, 160)}
+                title={`${product.name} - Discover & Review the Best AI Tools | ProdSpark`}
+                description={product.description.length > 152 ? `${product.description.substring(0, 152)}...` : product.description}
                 image={product.logo_url}
-                url={`https://prodspark.com/products/${id}`}
+                url={`https://prodspark.vercel.app/products/${id}`}
                 type="product"
+                canonical={`https://prodspark.vercel.app/products/${id}`}
             />
             <SchemaOrg data={productSchema} />
 
