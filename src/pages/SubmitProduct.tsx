@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import {
     Rocket, Upload, Plus, X, Globe, Type,
     Tag as TagIcon, CreditCard, Image as ImageIcon,
@@ -8,8 +8,8 @@ import {
     ChevronDown, Layers
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { supabase } from '../supabaseClient';
-import { uploadToCloudinary } from '../utils/cloudinary';
+import { createClerkSupabaseClient } from '../supabaseClient';
+import { uploadToCloudinary, uploadMultipleToCloudinary } from '../utils/cloudinary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEO } from '../components/SEO';
 
@@ -19,6 +19,7 @@ const CATEGORIES = [
 
 export const SubmitProduct = () => {
     const { user } = useUser();
+    const { getToken } = useAuth();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [logo, setLogo] = useState<File | null>(null);
@@ -46,6 +47,12 @@ export const SubmitProduct = () => {
     const handleGalleryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
             const files = Array.from(e.target.files);
+
+            if (gallery.length + files.length > 3) {
+                toast.error('Maximum 3 additional images allowed');
+                return;
+            }
+
             setGallery(prev => [...prev, ...files]);
             const newPreviews = files.map(file => URL.createObjectURL(file));
             setGalleryPreviews(prev => [...prev, ...newPreviews]);
@@ -64,18 +71,30 @@ export const SubmitProduct = () => {
             return;
         }
 
+        if (gallery.length > 3) {
+            toast.error('Maximum 3 additional images allowed');
+            return;
+        }
+
         setLoading(true);
         try {
+            // Get Clerk token for Supabase (Modern way: No template needed if Third-Party Auth is set up)
+            const token = await getToken();
+            if (!token) {
+                throw new Error('No authentication token found. Please sign in again.');
+            }
+
+            // Create authenticated Supabase client
+            const authenticatedSupabase = createClerkSupabaseClient(token);
+
             // 1. Upload Logo
             const logoUrl = await uploadToCloudinary(logo);
 
-            // 2. Upload Gallery
-            const galleryUrls = await Promise.all(
-                gallery.map(file => uploadToCloudinary(file))
-            );
+            // 2. Upload Gallery (Max 3)
+            const galleryUrls = await uploadMultipleToCloudinary(gallery);
 
             // 3. Save to Supabase
-            const { error } = await supabase.from('products').insert({
+            const { data, error } = await authenticatedSupabase.from('products').insert({
                 owner_clerk_id: user.id,
                 name: formData.name,
                 category: formData.category,
@@ -84,16 +103,20 @@ export const SubmitProduct = () => {
                 description: formData.description,
                 tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
                 pricing: formData.pricing,
-                images_urls: galleryUrls
-            });
+                images_urls: galleryUrls,
+                likes: [],
+                views: 0
+            }).select();
+
+            console.log('Supabase insert response:', { data, error });
 
             if (error) throw error;
 
             toast.success('Your spark has been ignited!');
             navigate('/products');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Submission error:', error);
-            toast.error('Failed to submit product. Please try again.');
+            toast.error('Failed to save product: ' + (error.message || 'Unknown error'));
         } finally {
             setLoading(false);
         }
@@ -135,7 +158,7 @@ export const SubmitProduct = () => {
                                         <Sparkles size={18} className="text-primary" />
                                         Identity
                                     </h3>
-                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Your tool's logo will be its first impression. High resolution recommended.</p>
+                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Your tool's logo will be its first impression. High resolution recommended (max 5MB).</p>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="group block relative cursor-pointer">
@@ -323,7 +346,10 @@ export const SubmitProduct = () => {
                                         <ImageIcon size={18} className="text-primary" />
                                         Visual Intel
                                     </h3>
-                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">Add screenshots or mockups of your interface.</p>
+                                    <p className="text-sm text-slate-400 font-medium leading-relaxed">
+                                        Add screenshots or mockups.
+                                        <span className="block mt-1 text-primary font-black">Max 3 images • Max 10MB each</span>
+                                    </p>
                                 </div>
                                 <div className="md:col-span-2">
                                     <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -339,11 +365,13 @@ export const SubmitProduct = () => {
                                                 </button>
                                             </div>
                                         ))}
-                                        <label className="aspect-video bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-main rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all group text-slate-300 hover:text-primary">
-                                            <input type="file" className="hidden" multiple accept="image/*" onChange={handleGalleryChange} />
-                                            <Plus size={24} className="group-hover:scale-110 transition-all" />
-                                            <span className="mt-2 text-[10px] font-black uppercase tracking-widest">Add Preview</span>
-                                        </label>
+                                        {galleryPreviews.length < 3 && (
+                                            <label className="aspect-video bg-slate-50 dark:bg-slate-900 border-2 border-dashed border-main rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all group text-slate-300 hover:text-primary">
+                                                <input type="file" className="hidden" multiple accept="image/*" onChange={handleGalleryChange} />
+                                                <Plus size={24} className="group-hover:scale-110 transition-all" />
+                                                <span className="mt-2 text-[10px] font-black uppercase tracking-widest">Add Preview</span>
+                                            </label>
+                                        )}
                                     </div>
                                 </div>
                             </div>

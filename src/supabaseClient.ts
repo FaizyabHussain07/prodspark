@@ -1,19 +1,19 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  console.error("Missing Supabase configuration. App will likely crash.");
+  throw new Error('Missing Supabase environment variables. Please check your .env file.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 /**
- * Helper to get a Supabase client with the Clerk JWT token.
- * Use this when performing authenticated requests.
+ * Creates an authenticated Supabase client using the Clerk JWT.
  */
-export const getSupabaseClient = (clerkToken: string) => {
+export const createClerkSupabaseClient = (clerkToken: string) => {
   return createClient(supabaseUrl, supabaseAnonKey, {
     global: {
       headers: {

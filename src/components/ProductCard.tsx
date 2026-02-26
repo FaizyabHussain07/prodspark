@@ -10,68 +10,86 @@ interface ProductCardProps {
 }
 
 export const ProductCard = ({ product, averageRating }: ProductCardProps) => {
+    const heroImage = product.images_urls?.[0] || product.logo_url;
+
     return (
         <motion.div
-            whileHover={{ y: -8 }}
-            className="group premium-card flex flex-col h-full overflow-hidden"
+            whileHover={{ y: -4, scale: 1.01 }}
+            className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col h-full"
         >
-            <Link to={`/products/${product.id}`} className="block relative aspect-[16/10] overflow-hidden">
-                <img
-                    src={`${product.logo_url}?q_auto,f_auto,w_600`}
-                    alt={product.name}
-                    loading="lazy"
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-4 right-4 z-10 flex flex-col gap-2 items-end">
-                    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl backdrop-blur-md border border-white/20 ${product.pricing === 'Free' ? 'bg-green-500/90 text-white' :
+            <div className="relative aspect-[16/9] overflow-hidden">
+                <Link to={`/products/${product.id}`} className="block w-full h-full">
+                    <img
+                        src={`${heroImage}?q_auto,f_auto,w_800`}
+                        alt={product.name}
+                        loading="lazy"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-60" />
+                </Link>
+
+                <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider backdrop-blur-md shadow-lg border border-white/20 ${product.pricing === 'Free' ? 'bg-green-500/90 text-white' :
                         product.pricing === 'Premium' ? 'bg-orange-500/90 text-white' :
                             'bg-indigo-600/90 text-white'
                         }`}>
                         {product.pricing}
                     </span>
-                    <span className="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] bg-black/60 text-white backdrop-blur-md border border-white/10 flex items-center gap-1.5">
+                    <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-black/60 text-white backdrop-blur-md border border-white/10 flex items-center gap-1.5">
                         <Tag size={10} />
                         {product.category}
                     </span>
                 </div>
-            </Link>
+            </div>
 
-            <div className="p-6 flex flex-col flex-grow">
-                <div className="flex justify-between items-start mb-3">
-                    <Link to={`/products/${product.id}`} className="hover:text-primary transition-colors">
-                        <h3 className="font-extrabold text-xl leading-tight line-clamp-1 tracking-tight">
+            <div className="p-5 flex flex-col flex-grow">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="flex-shrink-0">
+                        <img
+                            src={`${product.logo_url}?q_auto,f_auto,w_100`}
+                            alt={`${product.name} logo`}
+                            className="w-12 h-12 rounded-xl object-cover border border-slate-100 dark:border-slate-800 shadow-sm"
+                        />
+                    </div>
+                    <Link to={`/products/${product.id}`} className="flex-grow">
+                        <h3 className="font-extrabold text-xl leading-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors line-clamp-1">
                             {product.name}
                         </h3>
                     </Link>
-                    <div className="flex items-center gap-1.5 bg-yellow-50 dark:bg-yellow-500/10 px-3 py-1 rounded-full text-yellow-700 dark:text-yellow-500 font-black text-[11px] border border-yellow-100 dark:border-yellow-500/20">
-                        <StarRating rating={Math.round(averageRating)} size={12} />
-                        <span>{averageRating.toFixed(1)}</span>
-                    </div>
                 </div>
 
-                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-6 font-medium leading-relaxed">
+                <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-6 font-medium leading-normal flex-grow">
                     {product.description}
                 </p>
 
-                <div className="mt-auto pt-6 border-t border-main flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-slate-400 dark:text-slate-500">
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold">
-                            <Eye size={14} className="stroke-[2.5]" />
+                <div className="flex items-center justify-between py-4 border-y border-slate-50 dark:border-slate-800/50 mb-4">
+                    <div className="flex items-center gap-4 text-slate-400">
+                        <div className="flex items-center gap-1.5 text-xs font-bold">
+                            <Eye size={14} className="text-slate-400" />
                             {product.views.toLocaleString()}
                         </div>
-                        <div className="flex items-center gap-1.5 text-[11px] font-bold">
-                            <Heart size={14} className={`stroke-[2.5] ${product.likes.length > 0 ? 'fill-red-500 text-red-500' : ''}`} />
+                        <div className="flex items-center gap-1.5 text-xs font-bold">
+                            <Heart size={14} className={`${product.likes.length > 0 ? 'fill-red-500 text-red-500' : 'text-slate-400'}`} />
                             {product.likes.length}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5 text-[10px] font-black text-primary bg-orange-50 dark:bg-orange-500/10 px-3 py-1.5 rounded-xl border border-orange-100 dark:border-orange-500/20 shadow-sm">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-400/10 px-2.5 py-1.5 rounded-lg border border-orange-100/50 dark:border-orange-400/20">
                         <Zap size={12} fill="currentColor" />
-                        SCORE: {Math.round(product.quality_score || 0)}
+                        QS: {Math.round(product.quality_score || 0)}
                     </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <div className="flex items-center text-yellow-500">
+                        <StarRating rating={Math.round(averageRating)} size={14} />
+                    </div>
+                    <span className="text-sm font-black text-slate-700 dark:text-slate-300">
+                        {averageRating.toFixed(1)}
+                    </span>
                 </div>
             </div>
         </motion.div>
     );
 };
+

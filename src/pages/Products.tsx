@@ -167,16 +167,16 @@ export const Products = () => {
                 </div>
 
                 {loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                        {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                            <div key={i} className="bg-card rounded-[2rem] h-[450px] animate-pulse border-2 border-main" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="bg-card rounded-[2rem] aspect-[4/5] md:aspect-[16/10] animate-pulse border-2 border-main" />
                         ))}
                     </div>
                 ) : (
                     <AnimatePresence mode="popLayout">
                         <motion.div
                             layout
-                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"
                         >
                             {filteredProducts.length > 0 ? (
                                 filteredProducts.map((p) => (
