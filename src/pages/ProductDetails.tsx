@@ -197,17 +197,10 @@ export const ProductDetails = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F1A]">
             <SEO
-<<<<<<< HEAD
                 title={`${product.name} - Discover & Review the Best AI Tools | ProdSpark`}
                 description={product.description.length > 152 ? `${product.description.substring(0, 152)}...` : product.description}
-                image={product.logo_url}
-                url={`https://prodspark.vercel.app/products/${id}`}
-=======
-                title={`${product.name} on ProdSpark`}
-                description={product.description.substring(0, 160)}
                 image={product.images_urls?.[0] || product.logo_url}
-                url={`https://prodspark.com/products/${id}`}
->>>>>>> 9660b7deec04c019647cf6e4e0643489808506d0
+                url={`https://prodspark.vercel.app/products/${id}`}
                 type="product"
                 canonical={`https://prodspark.vercel.app/products/${id}`}
             />
